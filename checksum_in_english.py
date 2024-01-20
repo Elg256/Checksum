@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt
 class FileHasher(QWidget):
     # Create an cache were each time we calculate the hash of a file, we store the result in the
     # cache along with the alg used.
-    cache = {}
+    cache = []
     
     def __init__(self):
         super().__init__()
@@ -75,10 +75,11 @@ class FileHasher(QWidget):
         self.calculateHash(hashlib.md5, 'MD5')
     
     def calculateHash(self, hash_function, algorithm):
-        if self.file_path in self.cache:
-            if self.cache[self.file_path]['alg'] == algorithm:
-                self.result_label.setText(f'{algorithm} : {self.cache[self.file_path]["hash"]}')
-                return
+        for element in self.cache:
+            if element['file_path'] == self.file_path:
+                if element['alg'] == algorithm:
+                    self.result_label.setText(f'{algorithm} : {element["hash"]}')
+                    return
         
         try:
             with open(self.file_path, 'rb') as f:
@@ -87,7 +88,11 @@ class FileHasher(QWidget):
                     hash_obj.update(chunk)
             
             hex_digest = hash_obj.hexdigest()
-            self.cache[self.file_path] = {'alg': algorithm, 'hash': hex_digest}
+            self.cache.append({
+                'file_path': self.file_path,
+                'alg': algorithm,
+                'hash': hex_digest
+                })
             self.result_label.setText(f'{algorithm} : {hex_digest}')
         
         except AttributeError:
